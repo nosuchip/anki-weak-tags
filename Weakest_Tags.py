@@ -143,7 +143,7 @@ def calculate_and_show_weakest_tags():
 
     result_dialog.setWindowTitle('Result for deck "{}"'.format(current_deck['name']))
 
-    result_dialog.exec_()
+    result_dialog.show()
 
 
 action = QAction("Weakest Tags", mw)
