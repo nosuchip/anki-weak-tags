@@ -6,6 +6,6 @@ Then plugin calculates lapses for each tag and shows top tags to the user.
 
 "0" means that all tags would be counted (be careful, if you have too many tags, the result message box would be too tall). Default value is 5.
 
-If you experiencing any issues or find a bug - please ;et me know here: https://github.com/nosuchip/anki-weak-tags/issues
+If you experiencing any issues or find a bug - please let me know here: https://github.com/nosuchip/anki-weak-tags/issues
 
 Plugin repository is public: https://github.com/nosuchip/anki-weak-tagsw
