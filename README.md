@@ -1,11 +1,11 @@
-# anki-weak-tags
-Addon for Anki which calculates weakest tags to pay more attention.
+Once your flashcards collection is tagged, you can ask "which tags are my weakest?".
 
-Once installed it adds new menu option "`Weakest Tags`"  to  menu  "`Tools`".  When
-user click it input box appears with number of  displayed  tags  request.  User
-could input any nubber greater or equal to zero. "0" means that all tags should
-be count (be careful, if you have too many tags result message box could be too
-tall). Any other number will be used as tag scount limit. Default value is `5`.
+Once installed it adds a new menu option "Weakest Tags" to menu "Tools". When users click it, an input box appears with a request for a number of tags (users can input any number greater or equal to zero).
 
+Then plugin calculates lapses for each tag and shows top tags to the user.
 
-Then plugin calculates lapses for each tag and show top to user.
+"0" means that all tags would be counted (be careful, if you have too many tags, the result message box would be too tall). Default value is 5.
+
+If you experiencing any issues or find a bug - please ;et me know here: https://github.com/nosuchip/anki-weak-tags/issues
+
+Plugin repository is public: https://github.com/nosuchip/anki-weak-tagsw
