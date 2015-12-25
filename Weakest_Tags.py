@@ -9,6 +9,78 @@ import operator
 TOP_WEAKEST = 10
 
 def calculate_and_show_weakest_tags():
+    def get_table_item(value):
+        item = QTableWidgetItem(unicode(value))
+        #item.setFlags(item.flags & ~Qt.ItemIsEditable)
+        return item
+
+    class QWeakestTagsResultWidget(QWidget):
+        def __init__(self, parent=None):
+            QWidget.__init__(self, parent)
+
+            self.layout = QVBoxLayout(self)
+
+            layout_top = QHBoxLayout()
+            self.cards_lapses_widget = QLabel('?')
+            layout_top.addWidget(QLabel('<b>Total cards with lapses:</b>'))
+            layout_top.addWidget(self.cards_lapses_widget)
+            self.layout.addLayout(layout_top)
+
+            self.layout.addSpacing(10)
+
+            self.layout.addWidget(QLabel('<b>Weakest tags for your deck</b>'))
+
+            self.table_widget = QTableWidget()
+            self.table_widget.horizontalHeader().setResizeMode(QHeaderView.Stretch);
+            self.layout.addWidget(self.table_widget)
+
+        def set_cards_with_lapses(self, value):
+            self.cards_lapses_widget.setText(str(value))
+
+        def set_tags_with_lapses(self, values):
+            t = self.table_widget
+
+            t.clear()
+            t.setRowCount(len(values))
+            t.setColumnCount(2)
+
+            t.setHorizontalHeaderLabels(['Tag name', 'Lapses count'])
+
+            try:
+                for row_number, row in enumerate(values):
+                    tag = row[0]
+                    lapses = row[1]
+
+                    t.setItem(row_number, 0, get_table_item(tag))
+                    t.setItem(row_number, 1, get_table_item(lapses))
+            except Exception as ex:
+                print "Error occures:", ex
+
+    class QLeechesResultWidget(QWidget):
+        def __init__(self, parent=None):
+            QWidget.__init__(self, parent)
+
+            self.layout = QVBoxLayout(self)
+            self.table_widget = QTableWidget()
+            self.table_widget.horizontalHeader().setResizeMode(QHeaderView.Stretch);
+            self.layout.addWidget(self.table_widget)
+
+        def set_leeches_cards(self, values):
+            t = self.table_widget
+
+            t.clear()
+            t.setRowCount(len(values))
+            t.setColumnCount(2)
+
+            t.setHorizontalHeaderLabels(['Card front', 'Card back'])
+
+            try:
+                for row_number, row in enumerate(values):
+                    t.setItem(row_number, 0, get_table_item(row[0]))
+                    t.setItem(row_number, 1, get_table_item(row[1]))
+            except Exception as ex:
+                print "Error occures:", ex
+
     class QWeakestTagsQueryDialog(QDialog):
         def __init__(self, parent=None):
             QDialog.__init__(self, parent)
@@ -56,45 +128,29 @@ def calculate_and_show_weakest_tags():
 
             self.layout = QVBoxLayout(self)
 
-            layout_top = QHBoxLayout()
-            self.cards_lapses_widget = QLabel('?')
-            layout_top.addWidget(QLabel('<b>Total cards with lapses:</b>'))
-            layout_top.addWidget(self.cards_lapses_widget)
-            self.layout.addLayout(layout_top)
+            self.tab_widget = QTabWidget()
+            self.layout.addWidget(self.tab_widget)
 
-            self.layout.addSpacing(10)
+            self.weakest_widget = QWeakestTagsResultWidget()
+            self.tab_widget.addTab(self.weakest_widget, 'Weakest tags')
 
-            self.layout.addWidget(QLabel('<b>Weakest tags for your deck</b>'))
+            self.leeches_widget = QLeechesResultWidget()
+            self.tab_widget.addTab(self.leeches_widget, 'Leeches cards')
 
-            self.table_widget = QTableWidget()
-            self.table_widget.horizontalHeader().setResizeMode(QHeaderView.Stretch);
-            self.layout.addWidget(self.table_widget)
+            self.layout.addWidget(self.tab_widget)
 
             button_box = QDialogButtonBox(QDialogButtonBox.Ok, parent=self)
             button_box.accepted.connect(self.accept)
             self.layout.addWidget(button_box)
 
         def set_cards_with_lapses(self, value):
-            self.cards_lapses_widget.setText(str(value))
+            self.weakest_widget.set_cards_with_lapses(value)
 
         def set_tags_with_lapses(self, values):
-            t = self.table_widget
+            self.weakest_widget.set_tags_with_lapses(values)
 
-            t.clear()
-            t.setRowCount(len(values))
-            t.setColumnCount(2)
-
-            t.setHorizontalHeaderLabels(['Tag name', 'Lapses count'])
-
-            try:
-                for row_number, row in enumerate(values):
-                    tag = row[0]
-                    lapses = row[1]
-
-                    t.setItem(row_number, 0, QTableWidgetItem(str(tag)))
-                    t.setItem(row_number, 1, QTableWidgetItem(str(lapses)))
-            except Exception as ex:
-                print "Error occures:", ex
+        def set_leeches_cards(self, values):
+            self.leeches_widget.set_leeches_cards(values)
 
     query_dialog = QWeakestTagsQueryDialog(mw)
 
@@ -108,6 +164,8 @@ def calculate_and_show_weakest_tags():
         c.id AS card_id,
         c.lapses as lapses,
         n.id AS note_id,
+        n.flds as card_front,
+        n.sfld as card_back,
         n.tags as tags
 
     FROM cards c
@@ -115,12 +173,16 @@ def calculate_and_show_weakest_tags():
     WHERE c.did=?;'''
 
     tags_lapses = defaultdict(int)
+    leeches = []
 
-    for card_id, card_lapses, note_id, tags_str in mw.col.db.execute(query, current_deck['id']):
+    for card_id, card_lapses, note_id, front, back, tags_str in mw.col.db.execute(query, current_deck['id']):
         tags = tags_str.split() if tags_str else []
 
         for tag in tags:
             tags_lapses[tag] += card_lapses
+
+        if 'leech' in tags:
+            leeches.append((front, back))
 
     sorted_tags_lapses = sorted(tags_lapses.items(), key=operator.itemgetter(1), reverse=True)
 
@@ -140,6 +202,8 @@ def calculate_and_show_weakest_tags():
 
     card_with_lapses = mw.col.db.scalar(query, current_deck['id'])
     result_dialog.set_cards_with_lapses(card_with_lapses)
+
+    result_dialog.set_leeches_cards(leeches)
 
     result_dialog.setWindowTitle('Result for deck "{}"'.format(current_deck['name']))
 
