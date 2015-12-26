@@ -12,4 +12,4 @@ Second tab show cards with `leech` tag, front and back side.
 
 If you experiencing any issues or find a bug - please let me know here: https://github.com/nosuchip/anki-weak-tags/issues
 
-Plugin repository is public: https://github.com/nosuchip/anki-weak-tagsw
+Plugin repository is public: https://github.com/nosuchip/anki-weak-tags
